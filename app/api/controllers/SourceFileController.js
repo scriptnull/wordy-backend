@@ -12,6 +12,7 @@ module.exports = {
 		req.file('srcfile').upload(function(err , uploadedFiles){
 			if(err) return res.negotiate(err);
 			if (uploadedFiles.length === 0) return res.badRequest('No file was uploaded');
+			
 
 			var isTextFile = function(mimeType){
 				return mimeType.toString() === 'text/plain'
@@ -55,18 +56,24 @@ module.exports = {
 				}
 				(cb || ErrorService.noop )( null , srcArr );
 			};
-
+			
 			makeDBEntryForTxt(uploadedFiles[0] , function(err , srcFileObj ){
 				if(err) return res.json({error :  err.toString() });
 				readFileContent(srcFileObj.fileDescriptor.fd , function(err , content){
 					if(err) return res.json({error :  err.toString() });
 					parseContent(content , function(err , srcArr){
 						if(err) return res.json({error :  err.toString() });
-						return res.json(srcArr);
+						Token.createEach(srcArr.map(function(src){
+							src['sourceFile'] = srcFileObj ;
+							return src;
+						})).exec(function(err, insertedElementArr){
+							if(err) console.log(err.toString());
+							console.log('Inserted ' + insertedElementArr.length + ' tokens');
+						});
+						return res.json({ fileInfo :  srcFileObj  , srcArr : srcArr});
 					});
 				});
 			});
-
 	});
 } ,
 
