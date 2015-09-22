@@ -37,7 +37,7 @@ module.exports = {
 			};
 
 			var parseContent = function(content , cb){
-				var dataArr = content.split(' ').filter(function(val){
+				var dataArr = content.split('\n').join(' ').split(' ').filter(function(val){
 					return val != '';
 				});
 				var srcArr = [];
